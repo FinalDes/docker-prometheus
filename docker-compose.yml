@@ -6,3 +6,4 @@ services:
       - 9090:9090
     volumes:
       - ./data/prometheus:/prometheus
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
