@@ -1,0 +1,8 @@
+version: '2.4'
+services:
+  prometheus:
+    image: prom/prometheus:v2.7.1
+    ports: 
+      - 9090:9090
+    volumes:
+      - ./data/prometheus:/prometheus
