@@ -37,6 +37,3 @@ services:
       - /sys:/sys:ro
     ports: 
       - 8080:8080
-  net-tools:
-    image: net-tools
-    command: ping 1.1.1.1
