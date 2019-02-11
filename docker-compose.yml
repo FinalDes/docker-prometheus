@@ -1,4 +1,4 @@
-version: '2.4'
+version: '3.7'
 services:
   grafana:
     image: grafana/grafana
@@ -8,6 +8,11 @@ services:
       - ./data/grafana:/var/lib/grafana #plugins
       - ./grafana/datasources:/etc/grafana/provisioning/datasources/ #datasources
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards/ #dashboards
+    networks:
+      - prometheus
+    deploy:
+      mode: replicated
+      replicas: 1
   prometheus:
     image: prom/prometheus:v2.7.1
     ports: 
@@ -15,18 +20,35 @@ services:
     volumes:
       - ./data/prometheus:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - prometheus
+    deploy:
+      mode: replicated
+      replicas: 1
   node_exporter:
     image: prom/node-exporter:v0.17.0  #monitor host
     volumes:
-      - type: bind
-        source: /
-        target: /host
-        read_only: true
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      # - /etc/hostname:/etc/nodename
     # ports: 
     #   - 9100:9100
     command:
-      - --path.rootfs
-      - /host
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.ipvs'
+    networks:
+      - prometheus
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
   cadvisor:
     image: google/cadvisor
     command: -logtostderr -docker_only
@@ -37,3 +59,21 @@ services:
       - /sys:/sys:ro
     ports: 
       - 8080:8080
+    networks:
+      - prometheus
+    deploy:
+      mode: replicated
+      replicas: 1
+  net-tools:
+    image: net-tools
+    command: ping 1.1.1.1
+    networks:
+      - prometheus
+    deploy:
+      mode: replicated
+      replicas: 1
+networks:
+  prometheus:
+    ipam:
+      config:
+      - subnet: 172.18.0.0/16
