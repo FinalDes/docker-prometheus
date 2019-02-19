@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:5.4.3
     # ports:
     #   - 3000:3000
     volumes:
@@ -28,7 +28,7 @@ services:
     #   - 9090:9090
     volumes:
       - prometheus:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      # - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     deploy:
      replicas: 1
      mode: replicated
@@ -60,7 +60,7 @@ services:
     networks:
       - prometheus
   cadvisor:
-    image: google/cadvisor
+    image: google/cadvisor:latest
     command: -logtostderr -docker_only
     # ports:
     #   - 8100:8100
